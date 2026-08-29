@@ -1,0 +1,43 @@
+# General profile - modelled on the one Kunal built by hand in Options+.
+#   logikit build "General (logikit)" --file general.keys --replace
+#
+# Targets: a URL | app:<path> | sys:<action> | text:<what to type>
+#          wait:<ms> | a keyboard shortcut | steps chained with >>
+# Keep anything private in a *.local.keys file (gitignored).
+
+# ---------- Page 1: apps ----------
+Claude      | app:/Applications/Claude.app                | #2B1B12 | #F0A882 | chat
+ChatGPT     | app:/Applications/ChatGPT.app               | #10261E | #6FE3C0 | chat
+Atlas       | app:/Applications/ChatGPT Atlas.app         | #10261E | #6FE3C0 | globe
+Chrome      | app:/Applications/Google Chrome.app         | #12233F | #7FB4FF | globe
+Notion      | app:/Applications/Notion.app                | #1A1A1A | #FFFFFF | doc
+WhatsApp    | app:/Applications/WhatsApp.app              | #10301F | #6FE3A6 | chat
+Calendar    | app:/System/Applications/Calendar.app       | #1E3A5F | #8FC7FF | calendar
+Notes       | app:/System/Applications/Notes.app          | #3A2E10 | #FFD980 | doc
+Zoom        | app:/Applications/zoom.us.app               | #12233F | #7FB4FF | play
+
+---
+
+# ---------- Page 2: system and media ----------
+Play/Pause  | sys:MediaPlayPause                          | #1A1A1A | #FFFFFF | play
+Previous    | sys:MediaPrevTrack                          | #1A1A1A | #FFFFFF | play
+Next        | sys:MediaNextTrack                          | #1A1A1A | #FFFFFF | play
+Mute        | sys:VolumeMute                              | #3A1212 | #FF9B9B | star
+Finder      | sys:Finder                                  | #1E3A5F | #8FC7FF | folder
+Screenshot  | Cmd+Shift+5                                 | #2E1B4D | #C79BFF | search
+Emoji       | Cmd+Ctrl+Space                              | #2E1B4D | #C79BFF | star
+Spotlight   | Cmd+Space                                   | #1A1A1A | #FFFFFF | search
+Options+    | app:/Applications/logioptionsplus.app       | #1A1A1A | #FFFFFF | home
+
+---
+
+# ---------- Page 3: windows and text ----------
+Expand Left | Cmd+1                                       | #1A1A1A | #FFFFFF | home
+Window 2    | Cmd+2                                       | #1A1A1A | #FFFFFF | home
+Window 3    | Cmd+3                                       | #1A1A1A | #FFFFFF | home
+Close Tab   | Cmd+W                                       | #3A1212 | #FF9B9B | code
+Reopen Tab  | Cmd+Shift+T                                 | #10301F | #6FE3A6 | code
+Reminder    | text:Reminder\nClass today at 3pm           | #3A2E10 | #FFD980 | doc
+Stopwatch   | Cmd+.                                       | #1A1A1A | #FFFFFF | clock
+New Chat CH | app:/Applications/Google Chrome.app >> wait:900 >> Cmd+L >> text:https://codehaven.in >> Return | #12233F | #7FB4FF | globe
+Timer Note  | text:Started at                             | #1A1A1A | #FFFFFF | clock

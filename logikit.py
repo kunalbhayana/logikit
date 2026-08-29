@@ -356,6 +356,49 @@ def make_shortcut_action(label, spec):
 
 
 
+
+# --------------------------------------------------------------------------
+# actions
+#
+# Options+ inlines most actions as "$@Generic___@Verb___argument".  A macro's
+# action list can mix these freely, which is how a multi-step chain works.
+# (Hand-built profiles also contain bare-GUID references to profile actions;
+# those dangle as soon as the referenced action is deleted, so logikit always
+# inlines instead.)
+# --------------------------------------------------------------------------
+
+SYS_ACTIONS = [
+    "MediaPlayPause", "MediaNextTrack", "MediaPrevTrack", "VolumeMute",
+    "VolumeUp", "VolumeDown", "BrightnessUp", "BrightnessDown", "Finder",
+]
+
+
+def encode_step(step):
+    """One step of a chain -> the string Options+ stores."""
+    step = step.strip()
+    low = step.lower()
+    if low.startswith("app:"):
+        return f"$@Generic___@ExecuteApplication___{step[4:].strip()}||"
+    if low.startswith("text:"):
+        # \n in a keyfile means a real newline in the typed text
+        return "$@Generic___@TypeText___" + step[5:].replace("\\n", "\n")
+    if low.startswith("wait:"):
+        ms = step[5:].strip()
+        if not ms.isdigit():
+            die(f"wait: needs milliseconds, got {ms!r}")
+        return f"$@Generic___@Sleep___{ms}"
+    if low.startswith("sys:"):
+        return f"$DefaultMac___{step[4:].strip()}"
+    if step.startswith("http"):
+        return f"$@Generic___@OpenUrl___{step}"
+    return f"$@Generic___@KeyboardKey___{encode_shortcut(step)}"
+
+
+def is_shortcut(target):
+    t = target.strip()
+    return not (t.startswith("http") or ":" in t.split("+")[0][:6])
+
+
 # --------------------------------------------------------------------------
 # glyphs
 #
@@ -587,7 +630,7 @@ def cmd_add_url(args):
     p = resolve(args.profile)
     data = p["data"]
     mid = guid()
-    action = f"$@Generic___@OpenUrl___{args.url}"
+    action = encode_step(args.url)
     ref = f"$@Generic___@Macro___{mid}"
 
     modes = [lm.get("modeName") or "main"
@@ -804,8 +847,8 @@ def parse_keyfile(path):
             target = bits[1]
             cur.append({
                 "label": bits[0],
-                "url": target if target.startswith("http") else None,
-                "shortcut": None if target.startswith("http") else target,
+                "target": target,
+                "steps": [x for x in target.split(">>") if x.strip()],
                 "bg": bits[2] if len(bits) > 2 else "#000000",
                 "fg": bits[3] if len(bits) > 3 else "#FFFFFF",
                 "glyph": bits[4] if len(bits) > 4 else None,
@@ -845,9 +888,12 @@ def cmd_build(args):
                                     f"Page ({len(pages) + 1})"))
         page = pages[gi]
         for slot, item in enumerate(group):
-            if item["shortcut"]:
+            steps = item["steps"]
+            # A lone keyboard shortcut is a profile action; everything else
+            # (a URL, an app, or any chain) becomes a macro.
+            if len(steps) == 1 and is_shortcut(steps[0]):
                 ref, action = make_shortcut_action(item["label"],
-                                                   item["shortcut"])
+                                                   steps[0].strip())
                 actions.append(action)
                 page["controls"][slot]["pressAction"] = ref
                 icons[ref] = make_icon(item["label"], item["bg"], item["fg"],
@@ -870,7 +916,7 @@ def cmd_build(args):
                 "showAsSingleAction": True,
                 "actionEditorCommands": [],
                 "isMultiState": False,
-                "actions": [f"$@Generic___@OpenUrl___{item['url']}"],
+                "actions": [encode_step(x) for x in steps],
             })
             page["controls"][slot]["pressAction"] = ref
             icons[ref] = make_icon(item["label"], item["bg"], item["fg"],
@@ -954,6 +1000,76 @@ def cmd_add_app(args):
             shutil.copy2(args.icon,
                          os.path.join(dest, "ApplicationIcon.png"))
             print("  copied application icon")
+
+
+def cmd_preview(args):
+    """Render a page's real .ict files to an SVG contact sheet."""
+    p = resolve(args.profile)
+    pages = []
+    for _, _, pg, ctl in bound_controls(p["data"]):
+        if not pages or pages[-1][0] is not pg:
+            pages.append((pg, []))
+        pages[-1][1].append(ctl)
+    if not pages:
+        die(f'"{p["name"]}" has no pages')
+    idx = max(1, min(args.page, len(pages)))
+    page, controls = pages[idx - 1]
+
+    def rgb(v):
+        return f"#{(v >> 16) & 255:02X}{(v >> 8) & 255:02X}{v & 255:02X}"
+
+    K, GAP, PAD, TOP = 128, 12, 18, 44
+    cols = 3 if len(controls) > 4 else len(controls) or 1
+    rows = (len(controls) + cols - 1) // cols
+    W = PAD * 2 + cols * K + (cols - 1) * GAP
+    H = TOP + PAD + rows * K + (rows - 1) * GAP
+    out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" '
+           f'height="{H}" viewBox="0 0 {W} {H}">',
+           f'<rect width="{W}" height="{H}" fill="#0A0B0D" rx="18"/>',
+           f'<text x="{W / 2}" y="27" fill="#9BA1A8" font-size="12" '
+           f'font-family="-apple-system,system-ui,sans-serif" '
+           f'text-anchor="middle">{p["name"]} &#183; '
+           f'{page["displayName"]}</text>']
+
+    for i, ctl in enumerate(controls):
+        r, c = divmod(i, cols)
+        x, y = PAD + c * (K + GAP), TOP + r * (K + GAP)
+        ref = ctl.get("pressAction")
+        path = os.path.join(p["dir"], "ActionIcons", f"{ref}.ict")
+        if not ref or not os.path.isfile(path):
+            out.append(f'<rect x="{x}" y="{y}" width="{K}" height="{K}" '
+                       f'rx="10" fill="#151719"/>')
+            continue
+        ic = read_json(path)
+        out.append(f'<rect x="{x}" y="{y}" width="{K}" height="{K}" rx="10" '
+                   f'fill="{rgb(ic["backgroundColor"])}"/>')
+        for it in ic["items"]:
+            a = it["area"]
+            ax, ay = x + K * a["x"] / 100, y + K * a["y"] / 100
+            aw, ah = K * a["width"] / 100, K * a["height"] / 100
+            if it["itemType"] == "Image":
+                art = base64.b64decode(it["image"]).decode()
+                inner = re.sub(r"^<svg[^>]*>|</svg>$", "", art)
+                inner = inner.replace("#fff", rgb(it["imageColor"]))
+                side = min(aw, ah)
+                out.append(
+                    f'<g transform="translate({ax + (aw - side) / 2:.1f},'
+                    f'{ay + (ah - side) / 2:.1f}) scale({side / 32:.3f})">'
+                    f'{inner}</g>')
+            else:
+                txt = (it["text"].replace("&", "&amp;").replace("<", "&lt;")
+                       .replace(">", "&gt;"))
+                out.append(
+                    f'<text x="{ax + aw / 2:.1f}" y="{ay + ah / 2 + 5:.1f}" '
+                    f'fill="{rgb(it["textColor"])}" font-size="14" '
+                    f'font-family="-apple-system,system-ui,sans-serif" '
+                    f'text-anchor="middle">{txt}</text>')
+    out.append("</svg>")
+
+    dest = args.out or f"preview-{idx}.svg"
+    with open(dest, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(out))
+    print(f'wrote {dest} ({len(controls)} keys, page {idx} of {len(pages)})')
 
 
 def cmd_service(args):
@@ -1066,6 +1182,15 @@ def main():
     p.add_argument("--icon", help="256x256 PNG")
     writable(p)
     p.set_defaults(func=cmd_add_app)
+
+    p = sub.add_parser("preview", help="render a page to an SVG you can look at")
+    p.add_argument("profile")
+    p.add_argument("--page", type=int, default=1)
+    p.add_argument("--out")
+    p.set_defaults(func=cmd_preview)
+
+    p = sub.add_parser("actions", help="list built-in system actions")
+    p.set_defaults(func=lambda a: [print("  sys:" + n) for n in SYS_ACTIONS])
 
     p = sub.add_parser("glyphs", help="list built-in icon glyphs")
     p.set_defaults(func=cmd_glyphs)

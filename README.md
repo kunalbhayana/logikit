@@ -47,6 +47,23 @@ New Chat | Cmd+N                      | #2B1B12 | #F0A882 | chat
 CBSE 11  | https://example.com/cbse   | #10301F | #6FE3A6 | cap
 ```
 
+Targets can be more than URLs and shortcuts:
+
+| Target | Does |
+|---|---|
+| `https://...` | opens a URL |
+| `Cmd+Shift+G` | sends a keyboard shortcut |
+| `app:/Applications/Notes.app` | launches an app |
+| `sys:MediaPlayPause` | a built-in system action (`logikit actions`) |
+| `text:Hello\nthere` | types text (`\n` is a newline) |
+| `wait:500` | pauses, for use inside a chain |
+
+Chain steps with `>>` to build a macro:
+
+```
+Open CH | app:/Applications/Google Chrome.app >> wait:900 >> Cmd+L >> text:https://codehaven.in >> Return
+```
+
 A fifth field picks a built-in icon glyph (`logikit glyphs` lists them:
 calendar, cap, book, code, globe, home, doc, chart, chat, search, star,
 clock, folder, play). Glyphs are drawn in white and tinted to the key's
@@ -64,7 +81,16 @@ logikit add-app --bundle com.example.app --name "Example" \
                 --template "Loupedeck70/com.apple.safari"
 ```
 
-See `codehaven.keys` and `claude.keys` for full two-page examples.
+See `codehaven.keys`, `claude.keys` and `general.keys` for full examples.
+
+### Looking at a page before you trust it
+
+```bash
+logikit preview "CodeHaven" --page 1 --out page1.svg
+```
+
+Renders the page's real `.ict` files to an SVG, so you can see what is
+actually on the device rather than what you meant to put there.
 
 Then:
 
