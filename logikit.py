@@ -214,8 +214,150 @@ def resolve(ref):
     return hits[0]
 
 
+
+# --------------------------------------------------------------------------
+# keyboard shortcuts
+#
+# Options+ encodes a shortcut as four ___-separated fields:
+#   ControlOrCommand+Shift+KeyT___1033___Cmd+Shift+T___<mac fields>
+# where the mac fields are joined by SEP:
+#   mac-<virtual keycode> | <modifier mask> | <character> | <keyboard layout>
+# Fields 2 and 4 just record which layout was active when the key was made.
+# The mask is the Cocoa modifier flag OR'd with the device-dependent bit for
+# the left-hand copy of each modifier. Verified by reproducing every shortcut
+# already present in a live config byte-for-byte.
+# --------------------------------------------------------------------------
+
+SEP = "#\u00a4%&+?"
+
+VK = {
+    "a": 0, "s": 1, "d": 2, "f": 3, "h": 4, "g": 5, "z": 6, "x": 7, "c": 8,
+    "v": 9, "b": 11, "q": 12, "w": 13, "e": 14, "r": 15, "y": 16, "t": 17,
+    "1": 18, "2": 19, "3": 20, "4": 21, "6": 22, "5": 23, "9": 25, "7": 26,
+    "8": 28, "0": 29, "o": 31, "u": 32, "i": 34, "p": 35, "l": 37, "j": 38,
+    "k": 40, "n": 45, "m": 46,
+}
+
+# Punctuation uses a named spec rather than Key<c>. Only Period is confirmed
+# against real data; the rest follow the same obvious naming.
+PUNCT = {
+    ".": ("Period", 47), ",": ("Comma", 43), "/": ("Slash", 44),
+    "\\": ("Backslash", 42), ";": ("Semicolon", 41), "'": ("Quote", 39),
+    "[": ("BracketLeft", 33), "]": ("BracketRight", 30), "-": ("Minus", 27),
+    "=": ("Equal", 24), "`": ("Backquote", 50),
+}
+
+NAMED = {
+    "Space": (49, " "), "Tab": (48, "\t"), "Return": (36, ""),
+    "Escape": (53, ""), "Delete": (51, ""), "ArrowUp": (126, ""),
+    "ArrowDown": (125, ""), "ArrowLeft": (123, ""), "ArrowRight": (124, ""),
+}
+
+MODS = {  # canonical -> (cocoa flag, left-hand device bit)
+    "ControlOrCommand": (0x100000, 0x08), "Alt": (0x80000, 0x20),
+    "Control": (0x40000, 0x01), "Shift": (0x20000, 0x02),
+}
+MOD_ORDER = ["ControlOrCommand", "Alt", "Control", "Shift"]
+MOD_ALIAS = {
+    "cmd": "ControlOrCommand", "command": "ControlOrCommand",
+    "ctrl": "Control", "control": "Control", "shift": "Shift",
+    "opt": "Alt", "option": "Alt", "alt": "Alt",
+}
+MOD_DISPLAY = {"ControlOrCommand": "Cmd", "Alt": "Opt",
+               "Control": "Ctrl", "Shift": "Shift"}
+
+
+def mac_layout():
+    """Current keyboard layout id, e.g. com.apple.keylayout.US."""
+    try:
+        out = subprocess.run(
+            ["defaults", "read", os.path.expanduser(
+                "~/Library/Preferences/com.apple.HIToolbox.plist"),
+             "AppleSelectedInputSources"],
+            capture_output=True, text=True, timeout=5).stdout
+        m = re.search(r'"KeyboardLayout Name" = "?([^";]+)"?;', out)
+        if m:
+            return "com.apple.keylayout." + m.group(1).strip().replace(
+                "U.S.", "US").replace(" ", "")
+    except Exception:
+        pass
+    return "com.apple.keylayout.US"
+
+
+def encode_shortcut(spec, hkl=1033, layout=None):
+    """'Cmd+Shift+G' -> the keyboardKey string Options+ expects."""
+    layout = layout or mac_layout()
+    bits = [b for b in spec.split("+") if b]
+    key = bits[-1]
+    mods = []
+    for b in bits[:-1]:
+        canon = MOD_ALIAS.get(b.strip().lower())
+        if not canon:
+            die(f"unknown modifier {b!r} in {spec!r}")
+        if canon not in mods:
+            mods.append(canon)
+    mods = [m for m in MOD_ORDER if m in mods]
+
+    named = next((n for n in NAMED if n.lower() == key.lower()), None)
+    if named:
+        vk, ch = NAMED[named]
+        name, disp = named, named
+    elif key in PUNCT:
+        name, vk = PUNCT[key]
+        ch, disp = key, key
+    elif key.lower() in VK:
+        vk = VK[key.lower()]
+        ch = key.lower()
+        name, disp = f"Key{key.upper()}", key.upper()
+    else:
+        die(f"unsupported key {key!r} in {spec!r}")
+
+    mask = 0
+    for m in mods:
+        flag, dev = MODS[m]
+        mask |= flag | dev
+    if named and named.startswith("Arrow"):
+        mask |= 0x800000 | 0x200000     # function + numeric-pad, as macOS reports
+
+    f1 = "+".join(mods + [name])
+    f3 = "+".join([MOD_DISPLAY[m] for m in mods] + [disp])
+    f4 = SEP.join([f"mac-{vk}", str(mask), ch, layout])
+    return f"{f1}___{hkl}___{f3}___{f4}"
+
+
+def make_shortcut_action(label, spec):
+    """A profileAction that fires a keyboard shortcut."""
+    name = f"$@Generic___@ProfileAction___{guid()}"
+    return name, {
+        "$type": "Loupedeck.Service.ApplicationProfileCommand, "
+                 "LoupedeckService",
+        "isCommand": True,
+        "name": name,
+        "templateActionName": "$@Generic___@KeyboardKey",
+        "actionParameters": {
+            "$type": "Loupedeck.ActionEditorActionParameters, PluginApi",
+            "parameters": {
+                "$type": "Loupedeck.StringDictionaryNoCase, PluginApi",
+                "keyboardKey": encode_shortcut(spec),
+            },
+            "count": 1,
+        },
+        "displayName": label,
+        "description": "Activate a keyboard shortcut with a single press or "
+                       "hold down for continuous use like a keyboard key",
+        "groupName": "",
+        "superGroupName": "@macro",
+        "isProfileAction": True,
+        "isMultiState": False,
+        "isResetCommand": False,
+        "adjustmentName": None,
+        "states": None,
+    }
+
+
 # --------------------------------------------------------------------------
 # icons
+
 # --------------------------------------------------------------------------
 
 def make_icon(label, bg="#000000", fg="#FFFFFF", svg_path=None, font_size=5):
@@ -562,9 +704,11 @@ def parse_keyfile(path):
             bits = [b.strip() for b in line.split("|")]
             if len(bits) < 2:
                 die(f"{path}:{n}: expected 'Label | URL [| #bg]'")
+            target = bits[1]
             cur.append({
                 "label": bits[0],
-                "url": bits[1],
+                "url": target if target.startswith("http") else None,
+                "shortcut": None if target.startswith("http") else target,
                 "bg": bits[2] if len(bits) > 2 else "#000000",
                 "fg": bits[3] if len(bits) > 3 else "#FFFFFF",
             })
@@ -586,8 +730,10 @@ def cmd_build(args):
             for c in pg["controls"]:
                 c["pressAction"] = None
         data["macroCommands"] = []
+        data["profileActions"] = []
 
     macros = data.setdefault("macroCommands", [])
+    actions = data.setdefault("profileActions", [])
     modes = [lm.get("modeName") or "main"
              for lm in (data.get("layout") or {}).get("layoutModes") or []]
     icons = {}
@@ -601,6 +747,14 @@ def cmd_build(args):
                                     f"Page ({len(pages) + 1})"))
         page = pages[gi]
         for slot, item in enumerate(group):
+            if item["shortcut"]:
+                ref, action = make_shortcut_action(item["label"],
+                                                   item["shortcut"])
+                actions.append(action)
+                page["controls"][slot]["pressAction"] = ref
+                icons[ref] = make_icon(item["label"], item["bg"], item["fg"])
+                placed += 1
+                continue
             mid = guid()
             ref = f"$@Generic___@Macro___{mid}"
             macros.append({
@@ -636,10 +790,70 @@ def cmd_build(args):
         os.makedirs(idir, exist_ok=True)
         if args.replace:
             for f in os.listdir(idir):
-                if "@Macro___" in f:
+                if "@Macro___" in f or "@ProfileAction___" in f:
                     os.remove(os.path.join(idir, f))
         for ref, icon in icons.items():
             write_json(os.path.join(idir, f"{ref}.ict"), icon)
+
+
+def cmd_add_app(args):
+    tpl = resolve(args.template)
+    device = tpl["device"]
+    dest = os.path.join(APPS, device, args.bundle)
+    if os.path.isdir(dest):
+        die(f"{args.bundle} already exists on {device}")
+
+    info = {
+        "$type": "Loupedeck.Service.SupportedApplicationInfo, LoupedeckService",
+        "name": args.bundle,
+        "displayName": args.name,
+        "description": None,
+        "deviceType": device,
+        "nativePluginName": None,
+        "hasNativePlugin": False,
+        "processOrBundleName": args.bundle,
+        "modes": [{
+            "$type": "Loupedeck.Service.ApplicationMode, LoupedeckService",
+            "name": "main",
+            "parentModeName": None,
+            "displayName": "Main",
+        }],
+        "defaultProfileName": None,
+        "isEnabled": True,
+    }
+
+    # Start from a real profile so the layout matches the device exactly,
+    # then strip every binding out of the copy.
+    raw = open(tpl["info"], encoding="utf-8-sig").read()
+    mapping = {g: guid() for g in set(GUID_RE.findall(raw))}
+    for old, new in mapping.items():
+        raw = raw.replace(old, new)
+    prof = json.loads(raw)
+    pid = mapping.get(tpl["id"]) or guid()
+    prof["name"] = pid
+    prof["displayName"] = args.profile_name or f"{args.name} Profile"
+    prof["applicationName"] = args.bundle
+    prof["macroCommands"] = []
+    prof["profileActions"] = []
+    prof["lastModifiedTimeUtc"] = utc_now()
+    for _, _, _, ctl in bound_controls(prof):
+        ctl["pressAction"] = None
+        ctl["rotateAction"] = None
+
+    print(f'register "{args.name}" ({args.bundle}) on {device}')
+    print(f'  empty profile "{prof["displayName"]}" -> {pid}')
+    if args.dry_run:
+        return
+    with Session(args):
+        os.makedirs(os.path.join(dest, "Profiles", pid))
+        write_json(os.path.join(dest, "ApplicationInfo.json"), info)
+        write_json(os.path.join(dest, "Profiles", pid, "ProfileInfo.json"),
+                   prof)
+        os.makedirs(os.path.join(dest, "Profiles", pid, "ActionIcons"))
+        if args.icon and os.path.isfile(args.icon):
+            shutil.copy2(args.icon,
+                         os.path.join(dest, "ApplicationIcon.png"))
+            print("  copied application icon")
 
 
 def cmd_service(args):
@@ -736,11 +950,21 @@ def main():
     p = sub.add_parser("build", help="build pages of keys from a text file")
     p.add_argument("profile")
     p.add_argument("--file", required=True,
-                   help="lines of 'Label | URL [| #bg [| #fg]]', --- per page")
+                   help="lines of 'Label | URL-or-shortcut [| #bg [| #fg]]'")
     p.add_argument("--replace", action="store_true",
                    help="clear existing keys and macros first")
     writable(p)
     p.set_defaults(func=cmd_build)
+
+    p = sub.add_parser("add-app", help="register an app Options+ doesn't list")
+    p.add_argument("--bundle", required=True, help="e.g. com.example.app")
+    p.add_argument("--name", required=True, help="display name")
+    p.add_argument("--template", required=True,
+                   help="existing profile to copy the device layout from")
+    p.add_argument("--profile-name")
+    p.add_argument("--icon", help="256x256 PNG")
+    writable(p)
+    p.set_defaults(func=cmd_add_app)
 
     p = sub.add_parser("service", help="control LogiPluginService")
     p.add_argument("op", choices=["status", "stop", "start", "restart"])

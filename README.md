@@ -36,14 +36,29 @@ logikit set-url  --find old.example.com --replace new.example.com
 
 ### Building a keypad from a file
 
-Write the keys as text, one per line, `---` between pages:
+Write the keys as text, one per line, `---` between pages. A target that
+starts with `http` opens a URL; anything else is a keyboard shortcut:
 
 ```
-IGCSE    | https://example.com/igcse    | #12233F | #7FB4FF
-Practice | https://example.com/practice | #12233F | #7FB4FF
+IGCSE    | https://example.com/igcse | #12233F | #7FB4FF
+New Chat | Cmd+N                     | #2B1B12 | #F0A882
+Sidebar  | Cmd+Shift+G               | #1A1A1A | #FFFFFF
 ---
-CBSE 11  | https://example.com/cbse/11  | #10301F | #6FE3A6
+CBSE 11  | https://example.com/cbse  | #10301F | #6FE3A6
 ```
+
+Modifiers are `Cmd`, `Ctrl`, `Shift` and `Opt`/`Alt`. Keys can be letters,
+digits, punctuation, or `Space`, `Tab`, `Return`, `Escape`, `Delete` and
+`ArrowUp`/`Down`/`Left`/`Right`.
+
+Registering an app Options+ has never seen:
+
+```bash
+logikit add-app --bundle com.example.app --name "Example" \
+                --template "Loupedeck70/com.apple.safari"
+```
+
+See `codehaven.keys` and `claude.keys` for full two-page examples.
 
 Then:
 
@@ -80,6 +95,13 @@ Each profile is a self-contained directory: `ProfileInfo.json` holds the
 layout (`workspaces` → `pressPages` → `controls`, each control mapping a
 `controlId` to a `pressAction`), the macros, and the keyboard shortcuts.
 `ActionIcons/*.ict` are JSON wrapping a base64 SVG plus a text layer.
+
+Keyboard shortcuts are stored in a four-field encoding that carries the
+macOS virtual keycode, a modifier mask (the Cocoa flag OR'd with the
+device-dependent bit for each left-hand modifier), the character, and the
+keyboard layout that was active when the key was made. `logikit` generates it
+from a plain `Cmd+Shift+G` string; the encoder was validated by reproducing
+every shortcut in a live config byte-for-byte.
 
 Every identifier is an uppercase 32-hex GUID used only inside that directory,
 which is why duplication works: remap every GUID consistently and you get an

@@ -1,0 +1,27 @@
+# Claude Desktop keypad
+# Shortcuts verified by reading /Applications/Claude.app app.asar menu definitions.
+#   logikit build "Claude Profile" --file claude.keys --replace
+
+# ---------- Page 1: daily driving ----------
+New Chat    | Cmd+N         | #2B1B12 | #F0A882
+Palette     | Cmd+K         | #2B1B12 | #F0A882
+Sidebar     | Cmd+\         | #2B1B12 | #F0A882
+Find        | Cmd+F         | #1A1A1A | #FFFFFF
+Find Next   | Cmd+G         | #1A1A1A | #FFFFFF
+Back        | Cmd+[         | #1A1A1A | #FFFFFF
+Forward     | Cmd+]         | #1A1A1A | #FFFFFF
+Claude Code | Cmd+Shift+O   | #12233F | #7FB4FF
+Settings    | Cmd+,         | #1A1A1A | #FFFFFF
+
+---
+
+# ---------- Page 2: window and view ----------
+Reload      | Cmd+R         | #1A1A1A | #FFFFFF
+Full Screen | Ctrl+Cmd+F    | #1A1A1A | #FFFFFF
+Zoom In     | Cmd+=         | #1A1A1A | #FFFFFF
+Zoom Out    | Cmd+-         | #1A1A1A | #FFFFFF
+Actual Size | Cmd+0         | #1A1A1A | #FFFFFF
+Find Prev   | Cmd+Shift+G   | #1A1A1A | #FFFFFF
+Paste Plain | Cmd+Alt+Shift+V | #1A1A1A | #FFFFFF
+Close Win   | Cmd+W         | #3A1212 | #FF9B9B
+Quit Claude | Cmd+Q         | #3A1212 | #FF9B9B
