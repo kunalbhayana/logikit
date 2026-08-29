@@ -1,0 +1,8 @@
+# Chrome quick links - edit and rerun:
+#   logikit build "Chrome - Daily" --file chrome-daily.keys --replace
+# Format: Label | URL-or-shortcut | background | text/icon colour | glyph
+
+Calendar    | https://calendar.google.com/calendar/u/0/r    | #1E3A5F | #8FC7FF | calendar
+IB CS HL    | https://codehaven.in/school/ib/hl             | #2E1B4D | #C79BFF | cap
+IB SL       | https://codehaven.in/school/ib/sl             | #2E1B4D | #C79BFF | book
+IGCSE / O   | https://codehaven.in/courses/igcse-o-level-cs | #12233F | #7FB4FF | code

@@ -355,16 +355,111 @@ def make_shortcut_action(label, spec):
     }
 
 
+
+# --------------------------------------------------------------------------
+# glyphs
+#
+# 32x32 SVGs drawn in white and tinted at render time by the icon's imageColor,
+# so one glyph works in any colour. Keep paths simple - they are rasterised at
+# roughly 60px on the key.
+# --------------------------------------------------------------------------
+
+def _svg(body):
+    return ('<svg width="32" height="32" viewBox="0 0 32 32" '
+            'xmlns="http://www.w3.org/2000/svg">' + body + '</svg>')
+
+
+GLYPHS = {
+    "calendar": _svg(
+        '<path fill="#fff" d="M10 2a1.5 1.5 0 0 1 1.5 1.5V5h9V3.5a1.5 1.5 0 '
+        '0 1 3 0V5H25a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a4 4 0 '
+        '0 1 4-4h1.5V3.5A1.5 1.5 0 0 1 10 2Zm16 11H6v12a1 1 0 0 0 1 1h18a1 1 '
+        '0 0 0 1-1V13Z"/><rect x="9" y="16" width="4" height="4" rx="1" '
+        'fill="#fff"/><rect x="15" y="16" width="4" height="4" rx="1" '
+        'fill="#fff"/><rect x="21" y="16" width="4" height="4" rx="1" '
+        'fill="#fff"/>'),
+    "cap": _svg(
+        '<path fill="#fff" d="M16 3 1 11l4 2.1V21a1.5 1.5 0 0 0 3 0v-6.3l8 '
+        '4.3 15-8L16 3Z"/><path fill="#fff" d="M9 17.6V22c0 2.2 3.1 4 7 4s7-'
+        '1.8 7-4v-4.4l-7 3.7-7-3.7Z"/>'),
+    "book": _svg(
+        '<path fill="#fff" d="M4 5.5A2.5 2.5 0 0 1 6.5 3H14a3 3 0 0 1 3 3v20a3'
+        ' 3 0 0 0-3-3H6.5A2.5 2.5 0 0 1 4 20.5v-15Zm24 0A2.5 2.5 0 0 0 25.5 '
+        '3H18a3 3 0 0 0-3 3v20a3 3 0 0 1 3-3h7.5a2.5 2.5 0 0 0 2.5-2.5v-15Z"/>'),
+    "code": _svg(
+        '<path fill="#fff" d="M11.7 8.3a1.5 1.5 0 0 1 0 2.1L6.1 16l5.6 5.6a1.5'
+        ' 1.5 0 1 1-2.1 2.1l-6.7-6.6a1.5 1.5 0 0 1 0-2.2l6.7-6.6a1.5 1.5 0 0 '
+        '1 2.1 0Zm8.6 0a1.5 1.5 0 0 1 2.1 0l6.7 6.6a1.5 1.5 0 0 1 0 2.2l-6.7 '
+        '6.6a1.5 1.5 0 1 1-2.1-2.1l5.6-5.6-5.6-5.6a1.5 1.5 0 0 1 0-2.1Z"/>'),
+    "globe": _svg(
+        '<path fill="#fff" d="M16 2a14 14 0 1 0 0 28 14 14 0 0 0 0-28Zm10.9 '
+        '12.5h-5.4a21 21 0 0 0-2-8.2 11 11 0 0 1 7.4 8.2ZM16 5.2c1.2 1.7 2.3 '
+        '4.9 2.5 9.3h-5c.2-4.4 1.3-7.6 2.5-9.3Zm-3.5.9a21 21 0 0 0-2 8.4H5.1a'
+        '11 11 0 0 1 7.4-8.4Zm-7.4 11.4h5.4a21 21 0 0 0 2 8.4 11 11 0 0 1-7.4'
+        '-8.4ZM16 26.8c-1.2-1.7-2.3-4.9-2.5-9.3h5c-.2 4.4-1.3 7.6-2.5 9.3Zm3.'
+        '5-.9a21 21 0 0 0 2-8.4h5.4a11 11 0 0 1-7.4 8.4Z"/>'),
+    "home": _svg(
+        '<path fill="#fff" d="M15 3.2a1.5 1.5 0 0 1 2 0l12 10.6a1.5 1.5 0 0 1'
+        '-2 2.2l-.5-.4V26a3 3 0 0 1-3 3h-5v-8h-5v8H8a3 3 0 0 1-3-3V15.6l-.5.4'
+        'a1.5 1.5 0 1 1-2-2.2L15 3.2Z"/>'),
+    "doc": _svg(
+        '<path fill="#fff" d="M7 4a3 3 0 0 1 3-3h8.5L27 9.5V28a3 3 0 0 1-3 3H1'
+        '0a3 3 0 0 1-3-3V4Zm11 .8V10h5.2L18 4.8ZM11.5 15h9a1.5 1.5 0 0 1 0 3h-'
+        '9a1.5 1.5 0 0 1 0-3Zm0 6h9a1.5 1.5 0 0 1 0 3h-9a1.5 1.5 0 0 1 0-3Z"/>'),
+    "chart": _svg(
+        '<path fill="#fff" d="M5 3a1.5 1.5 0 0 1 1.5 1.5V25a1.5 1.5 0 0 0 1.5 '
+        '1.5h20a1.5 1.5 0 0 1 0 3H8a4.5 4.5 0 0 1-4.5-4.5V4.5A1.5 1.5 0 0 1 5 '
+        '3Zm6 16a1.5 1.5 0 0 1 1.5 1.5V22a1.5 1.5 0 0 1-3 0v-1.5A1.5 1.5 0 0 1'
+        ' 11 19Zm6-8a1.5 1.5 0 0 1 1.5 1.5V22a1.5 1.5 0 0 1-3 0V12.5A1.5 1.5 0'
+        ' 0 1 17 11Zm6 4a1.5 1.5 0 0 1 1.5 1.5V22a1.5 1.5 0 0 1-3 0v-5.5A1.5 '
+        '1.5 0 0 1 23 15Z"/>'),
+    "chat": _svg(
+        '<path fill="#fff" d="M16 3c7.7 0 14 4.9 14 11s-6.3 11-14 11c-1.3 0-2.'
+        '6-.1-3.8-.4l-6.6 3.3A1 1 0 0 1 4.2 27l1.3-4.6C3.3 20.4 2 17.4 2 14 2 '
+        '7.9 8.3 3 16 3Z"/>'),
+    "search": _svg(
+        '<path fill="#fff" d="M14 2a12 12 0 0 1 9.5 19.4l6.1 6a1.5 1.5 0 0 1-2'
+        '.1 2.2l-6.1-6.1A12 12 0 1 1 14 2Zm0 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"'
+        '/>'),
+    "star": _svg(
+        '<path fill="#fff" d="m16 2 4.2 8.6 9.5 1.4-6.9 6.7 1.7 9.4L16 23.7l-8'
+        '.5 4.4 1.7-9.4L2.3 12l9.5-1.4L16 2Z"/>'),
+    "clock": _svg(
+        '<path fill="#fff" d="M16 2a14 14 0 1 0 0 28 14 14 0 0 0 0-28Zm1.5 6.5'
+        'v7.9l5.3 3.1a1.5 1.5 0 1 1-1.5 2.6l-6-3.5a1.5 1.5 0 0 1-.8-1.3V8.5a1.'
+        '5 1.5 0 0 1 3 0Z"/>'),
+    "folder": _svg(
+        '<path fill="#fff" d="M3 7a3 3 0 0 1 3-3h6.2a3 3 0 0 1 2.1.9L16.6 7H26'
+        'a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V7Z"/>'),
+    "play": _svg(
+        '<path fill="#fff" d="M11 5.9c0-1.5 1.7-2.5 3-1.7l13 10.1a2 2 0 0 1 0 '
+        '3.4l-13 10.1c-1.3.8-3-.2-3-1.7V5.9Z"/>'),
+}
+
+
+def cmd_glyphs(args):
+    for name in sorted(GLYPHS):
+        print(f"  {name}")
+
+
 # --------------------------------------------------------------------------
 # icons
 
 # --------------------------------------------------------------------------
 
-def make_icon(label, bg="#000000", fg="#FFFFFF", svg_path=None, font_size=5):
+def make_icon(label, bg="#000000", fg="#FFFFFF", svg_path=None, font_size=5,
+              glyph=None):
     items = []
-    if svg_path:
+    art = None
+    if glyph:
+        if glyph not in GLYPHS:
+            die(f"unknown glyph {glyph!r} (try: logikit glyphs)")
+        art = GLYPHS[glyph].encode()
+    elif svg_path:
         with open(svg_path, "rb") as fh:
-            blob = base64.b64encode(fh.read()).decode()
+            art = fh.read()
+    if art:
+        blob = base64.b64encode(art).decode()
         items.append({
             "image": blob,
             "imageFileName": None,
@@ -375,7 +470,7 @@ def make_icon(label, bg="#000000", fg="#FFFFFF", svg_path=None, font_size=5):
             "area": {"x": 17, "y": 0, "width": 65, "height": 65},
         })
     if label:
-        area = ({"x": 0, "y": 65, "width": 100, "height": 30} if svg_path
+        area = ({"x": 0, "y": 65, "width": 100, "height": 30} if art
                 else {"x": 0, "y": 30, "width": 100, "height": 40})
         items.append({
             "text": label,
@@ -543,7 +638,8 @@ def cmd_add_url(args):
         icons = os.path.join(p["dir"], "ActionIcons")
         os.makedirs(icons, exist_ok=True)
         write_json(os.path.join(icons, f"{ref}.ict"),
-                   make_icon(args.label, args.bg, args.fg, args.svg))
+                   make_icon(args.label, args.bg, args.fg, args.svg,
+                             glyph=args.glyph))
 
 
 def cmd_set_url(args):
@@ -591,7 +687,8 @@ def cmd_icon(args):
         os.makedirs(icons, exist_ok=True)
         write_json(os.path.join(icons, f"{target}.ict"),
                    make_icon(args.new_label or args.label,
-                             args.bg, args.fg, args.svg))
+                             args.bg, args.fg, args.svg,
+                             glyph=args.glyph))
 
 
 def cmd_unbind(args):
@@ -711,6 +808,7 @@ def parse_keyfile(path):
                 "shortcut": None if target.startswith("http") else target,
                 "bg": bits[2] if len(bits) > 2 else "#000000",
                 "fg": bits[3] if len(bits) > 3 else "#FFFFFF",
+                "glyph": bits[4] if len(bits) > 4 else None,
             })
     if cur:
         pages.append(cur)
@@ -752,7 +850,8 @@ def cmd_build(args):
                                                    item["shortcut"])
                 actions.append(action)
                 page["controls"][slot]["pressAction"] = ref
-                icons[ref] = make_icon(item["label"], item["bg"], item["fg"])
+                icons[ref] = make_icon(item["label"], item["bg"], item["fg"],
+                                       glyph=item["glyph"])
                 placed += 1
                 continue
             mid = guid()
@@ -774,7 +873,8 @@ def cmd_build(args):
                 "actions": [f"$@Generic___@OpenUrl___{item['url']}"],
             })
             page["controls"][slot]["pressAction"] = ref
-            icons[ref] = make_icon(item["label"], item["bg"], item["fg"])
+            icons[ref] = make_icon(item["label"], item["bg"], item["fg"],
+                                   glyph=item["glyph"])
             placed += 1
         print(f'  page {gi + 1} "{page["displayName"]}": '
               + ", ".join(i["label"] for i in group))
@@ -893,6 +993,7 @@ def main():
         p.add_argument("--bg", default="#000000", help="key background colour")
         p.add_argument("--fg", default="#FFFFFF", help="label/icon colour")
         p.add_argument("--svg", help="SVG file to embed above the label")
+        p.add_argument("--glyph", help="built-in glyph name (see: glyphs)")
 
     p = sub.add_parser("list", help="list every profile")
     p.add_argument("--device")
@@ -965,6 +1066,9 @@ def main():
     p.add_argument("--icon", help="256x256 PNG")
     writable(p)
     p.set_defaults(func=cmd_add_app)
+
+    p = sub.add_parser("glyphs", help="list built-in icon glyphs")
+    p.set_defaults(func=cmd_glyphs)
 
     p = sub.add_parser("service", help="control LogiPluginService")
     p.add_argument("op", choices=["status", "stop", "start", "restart"])

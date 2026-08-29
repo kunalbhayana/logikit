@@ -40,12 +40,18 @@ Write the keys as text, one per line, `---` between pages. A target that
 starts with `http` opens a URL; anything else is a keyboard shortcut:
 
 ```
-IGCSE    | https://example.com/igcse | #12233F | #7FB4FF
-New Chat | Cmd+N                     | #2B1B12 | #F0A882
-Sidebar  | Cmd+Shift+G               | #1A1A1A | #FFFFFF
+Calendar | https://calendar.google.com | #1E3A5F | #8FC7FF | calendar
+IGCSE    | https://example.com/igcse  | #12233F | #7FB4FF | code
+New Chat | Cmd+N                      | #2B1B12 | #F0A882 | chat
 ---
-CBSE 11  | https://example.com/cbse  | #10301F | #6FE3A6
+CBSE 11  | https://example.com/cbse   | #10301F | #6FE3A6 | cap
 ```
+
+A fifth field picks a built-in icon glyph (`logikit glyphs` lists them:
+calendar, cap, book, code, globe, home, doc, chart, chat, search, star,
+clock, folder, play). Glyphs are drawn in white and tinted to the key's
+text colour, so one glyph works in any palette. `--svg` takes your own file
+instead.
 
 Modifiers are `Cmd`, `Ctrl`, `Shift` and `Opt`/`Alt`. Keys can be letters,
 digits, punctuation, or `Space`, `Tab`, `Return`, `Escape`, `Delete` and
