@@ -1,0 +1,26 @@
+# CodeHaven keypad - edit this file, then:
+#   logikit build "CodeHaven" --file codehaven.keys --replace
+# Format:  Label | URL | background | text colour     ('---' = next page)
+
+# ---------- Page 1: core curricula ----------
+IGCSE       | https://codehaven.in/courses/igcse-o-level-cs          | #12233F | #7FB4FF
+Practice    | https://codehaven.in/courses/igcse-o-level-cs/practice | #12233F | #7FB4FF
+Gen AI      | https://codehaven.in/courses/generative-ai             | #2A1B3D | #C79BFF
+IB SL/HL    | https://codehaven.in/school/ib/sl                      | #2A1B3D | #C79BFF
+IB Syllabus | https://codehaven.in/school/ib/hl/syllabus             | #2A1B3D | #C79BFF
+A Level     | https://codehaven.in/courses/a-level-cs                | #12233F | #7FB4FF
+Home        | https://codehaven.in                                  | #1A1A1A | #FFFFFF
+About       | https://codehaven.in/about                             | #1A1A1A | #FFFFFF
+Calendar    | https://calendar.google.com/calendar/u/0/r             | #1A1A1A | #FFFFFF
+
+---
+
+# ---------- Page 2: CBSE and ISC ----------
+CBSE 11 CS  | https://codehaven.in/school/cbse/11/computer-science      | #10301F | #6FE3A6
+CBSE 12 CS  | https://codehaven.in/school/cbse/12/computer-science      | #10301F | #6FE3A6
+CBSE 11 IP  | https://codehaven.in/school/cbse/11/ip                    | #10301F | #6FE3A6
+CBSE 12 IP  | https://codehaven.in/school/cbse/12/ip                    | #10301F | #6FE3A6
+ISC 11 CA   | https://codehaven.in/school/icse/11/computer-applications | #3A2410 | #FFB870
+ISC 12 CA   | https://codehaven.in/school/icse/12/computer-applications | #3A2410 | #FFB870
+ISC 11 AI   | https://codehaven.in/school/isc/11/artificial-intelligence| #3A2410 | #FFB870
+ISC 12 AI   | https://codehaven.in/school/isc/12/artificial-intelligence| #3A2410 | #FFB870
