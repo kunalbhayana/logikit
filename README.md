@@ -58,6 +58,7 @@ Targets can be more than URLs and shortcuts:
 | `text:Hello\nthere` | types text (`\n` is a newline) |
 | `wait:500` | pauses, for use inside a chain |
 | `plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleChatCommand` | runs a plugin action directly |
+| `open:/path/to/folder` | opens a file, folder or URL in the Finder |
 
 Chain steps with `>>` to build a macro:
 
