@@ -325,6 +325,36 @@ def encode_shortcut(spec, hkl=1033, layout=None):
     return f"{f1}___{hkl}___{f3}___{f4}"
 
 
+def make_send_text_action(label, text, use_clipboard=True):
+    """A profileAction that sends a block of text, optionally via clipboard."""
+    name = f"$@Generic___@ProfileAction___{guid()}"
+    return name, {
+        "$type": "Loupedeck.Service.ApplicationProfileCommand, "
+                 "LoupedeckService",
+        "isCommand": True,
+        "name": name,
+        "templateActionName": "$@Generic___@SendText",
+        "actionParameters": {
+            "$type": "Loupedeck.ActionEditorActionParameters, PluginApi",
+            "parameters": {
+                "$type": "Loupedeck.StringDictionaryNoCase, PluginApi",
+                "text": text,
+                "useClipboard": "true" if use_clipboard else "false",
+            },
+            "count": 1,
+        },
+        "displayName": label,
+        "description": "Send a block of text",
+        "groupName": "",
+        "superGroupName": "@macro",
+        "isProfileAction": True,
+        "isMultiState": False,
+        "isResetCommand": False,
+        "adjustmentName": None,
+        "states": None,
+    }
+
+
 def make_shortcut_action(label, spec):
     """A profileAction that fires a keyboard shortcut."""
     name = f"$@Generic___@ProfileAction___{guid()}"
@@ -891,6 +921,16 @@ def cmd_build(args):
             steps = item["steps"]
             # A lone keyboard shortcut is a profile action; everything else
             # (a URL, an app, or any chain) becomes a macro.
+            one = steps[0].strip()
+            if len(steps) == 1 and one.lower().startswith("send:"):
+                ref, action = make_send_text_action(
+                    item["label"], one[5:].replace("\\n", "\n"))
+                actions.append(action)
+                page["controls"][slot]["pressAction"] = ref
+                icons[ref] = make_icon(item["label"], item["bg"], item["fg"],
+                                       glyph=item["glyph"])
+                placed += 1
+                continue
             if len(steps) == 1 and is_shortcut(steps[0]):
                 ref, action = make_shortcut_action(item["label"],
                                                    steps[0].strip())
