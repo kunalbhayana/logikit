@@ -111,6 +111,18 @@ None of that is a hardware limit. The profiles are plain JSON sitting in a
 directory, and the icons are base64 SVG. Once your keypad is a text file in
 git, changing it is one command and you can see every change in a diff.
 
+## Keeping private links out of git
+
+Anything with a token in it - a Zoom join link with `?pwd=`, a private
+document URL, a personal canned reply - belongs in a `*.local.keys` file.
+Those are gitignored, and `logikit build` reads them like any other keyfile:
+
+```bash
+logikit build "Chrome - Daily" --file chrome-daily.local.keys --replace
+```
+
+The committed `.keys` files here are examples with public URLs only.
+
 ## Safety
 
 Every write zips the whole profile store into `Applications.Backups/` first,
