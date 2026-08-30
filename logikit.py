@@ -406,6 +406,8 @@ SYS_ACTIONS = [
 def encode_step(step):
     """One step of a chain -> the string Options+ stores."""
     step = step.strip()
+    if step.startswith("$"):
+        return step          # already a raw action id, pass through
     low = step.lower()
     if low.startswith("app:"):
         return f"$@Generic___@ExecuteApplication___{step[4:].strip()}||"
@@ -419,14 +421,27 @@ def encode_step(step):
         return f"$@Generic___@Sleep___{ms}"
     if low.startswith("sys:"):
         return f"$DefaultMac___{step[4:].strip()}"
+    if low.startswith("plugin:"):
+        # plugin:<PluginName>:<ActionName>
+        rest = step[7:].strip()
+        if ":" not in rest:
+            die(f"plugin: needs <PluginName>:<ActionName>, got {rest!r}")
+        plug, action = rest.split(":", 1)
+        return f"${plug.strip()}___{action.strip()}"
     if step.startswith("http"):
         return f"$@Generic___@OpenUrl___{step}"
     return f"$@Generic___@KeyboardKey___{encode_shortcut(step)}"
 
 
+TARGET_PREFIXES = ("app:", "text:", "send:", "wait:", "sys:", "plugin:")
+
+
 def is_shortcut(target):
+    """True only for things like Cmd+Shift+G, not URLs or prefixed targets."""
     t = target.strip()
-    return not (t.startswith("http") or ":" in t.split("+")[0][:6])
+    if t.startswith("http") or t.startswith("$"):
+        return False
+    return not t.lower().startswith(TARGET_PREFIXES)
 
 
 # --------------------------------------------------------------------------

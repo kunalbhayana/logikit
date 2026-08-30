@@ -1,0 +1,28 @@
+# Zoom profile driven by the Logi ZoomMeeting plugin, which talks to Zoom
+# directly rather than firing keystrokes.  Command list extracted from
+# Plugins/ZoomMeeting/mac/ZoomPlugin.dll.
+#   logikit build "Zoom (logikit)" --file zoom.keys --replace
+
+# ---------- Page 1: running the class ----------
+Share Screen | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleShareScreenCommand        | #12233F | #7FB4FF | play
+Mute         | $ZoomMeeting___ZoomMuteToggleCommand | #3A2E10 | #FFD980 | chat
+Video        | $ZoomMeeting___ZoomVideoToggleCommand| #3A2E10 | #FFD980 | play
+Mute All     | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.MuteAllParticipantsCommand      | #2E1B4D | #C79BFF | chat
+Unmute All   | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.UnmuteAllParticipantsCommand    | #2E1B4D | #C79BFF | chat
+Chat         | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleChatCommand               | #10301F | #6FE3A6 | chat
+Gallery/Spkr | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleGallerySpeakerViewCommand | #1A1A1A | #FFFFFF | home
+Raise Hand   | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.RaiseLowerHandCommand           | #1A1A1A | #FFFFFF | star
+Leave        | $ZoomMeeting___ZoomLeaveMeetingCommand | #2A1416 | #FF8A8A | close
+
+---
+
+# ---------- Page 2: recording, annotation, extras ----------
+Record       | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.StartStopLocalRecordingCommand  | #3A1212 | #FF9B9B | play
+Pause Rec    | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.PauseResumeRecordingCommand     | #3A2E10 | #FFD980 | clock
+Cloud Rec    | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.StartStopCloudRecordingCommand  | #3A1212 | #FF9B9B | globe
+Annotate     | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.AnnotateCommand                 | #2E1B4D | #C79BFF | code
+Clear Draw   | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ClearAllDrawingsCommand         | #2E1B4D | #C79BFF | close
+Full Screen  | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleFullScreenCommand         | #1A1A1A | #FFFFFF | home
+Blur BG      | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleBlurBackgroundCommand     | #1A1A1A | #FFFFFF | star
+Switch Cam   | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.SwitchCameraCommand             | #1A1A1A | #FFFFFF | search
+Copy Invite  | plugin:ZoomMeeting:Loupedeck.ZoomPlugin.CopyInviteLinkCommand           | #1E3A5F | #8FC7FF | doc

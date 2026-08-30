@@ -57,6 +57,7 @@ Targets can be more than URLs and shortcuts:
 | `sys:MediaPlayPause` | a built-in system action (`logikit actions`) |
 | `text:Hello\nthere` | types text (`\n` is a newline) |
 | `wait:500` | pauses, for use inside a chain |
+| `plugin:ZoomMeeting:Loupedeck.ZoomPlugin.ToggleChatCommand` | runs a plugin action directly |
 
 Chain steps with `>>` to build a macro:
 
